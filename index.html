@@ -2,30 +2,55 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Helen Abla 🌹</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    html, body { margin:0; padding:0; overflow:hidden; background:#050505;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-
-    #message{
-      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-      text-align:center; background:#050505; color:#fff; z-index:10;
-      transition: opacity 1.8s ease; padding:24px;
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #050505;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-    #message.hide{ opacity:0; pointer-events:none; }
 
-    h1{ margin:0; font-size:clamp(28px,5vw,64px); line-height:1.3; letter-spacing:1px; }
+    /* Açılış mesajı */
+    #message {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
 
-    canvas{ position:fixed; inset:0; z-index:1; display:block; }
+      background: #050505;
+      color: #fff;
+      z-index: 10;
 
-    /* Sol üst durum kutusu */
-    #status{
-      position:fixed; left:12px; top:12px; z-index:99999;
-      color:#eaeaea; font:13px/1.35 system-ui;
-      background:rgba(0,0,0,.60); padding:10px 12px; border-radius:12px;
-      max-width:min(520px,92vw); white-space:pre-wrap;
+      padding: 24px;
+      opacity: 1;
+      transition: opacity 1.8s ease;
+    }
+
+    #message.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #message h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 64px);
+      line-height: 1.25;
+      letter-spacing: 1px;
+      text-shadow: 0 10px 30px rgba(0,0,0,.75);
+    }
+
+    /* Three canvas */
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+      z-index: 1;
     }
   </style>
 </head>
@@ -41,30 +66,17 @@
     </h1>
   </div>
 
-  <div id="status">Sayfa açıldı ✅\nmain.js deneniyor...</div>
+  <!-- Cache kırmak için v sayısını istersen artır -->
+  <script type="module" src="./main.js?v=400"></script>
 
-  <!-- Mesajı main.js'den bağımsız olarak kaldır (test) -->
   <script>
+    // Mesajı 3.2sn sonra yumuşakça kaldır
     setTimeout(() => {
       const msg = document.getElementById('message');
       if (!msg) return;
       msg.classList.add('hide');
       setTimeout(() => msg.remove(), 2000);
     }, 3200);
-  </script>
-
-  <!-- main.js'yi dinamik import ile yükle: hata olursa ekrana bas -->
-  <script type="module">
-    const st = document.getElementById('status');
-    const log = (t) => st.textContent = t + "\n\n" + st.textContent;
-
-    try {
-      await import('./main.js?v=202');
-      log('main.js yüklendi ✅');
-    } catch (e) {
-      console.error(e);
-      log('main.js yüklenemedi ❌\n' + (e?.message || e));
-    }
   </script>
 </body>
 </html>
