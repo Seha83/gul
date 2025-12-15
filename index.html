@@ -1,178 +1,81 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gerçekçi 3D Gül Animasyonu</title>
-<style>
-  html, body { margin: 0; padding: 0; background: #0b0b0b; overflow: hidden; }
-  #hint {
-    position: fixed; bottom: 12px; right: 12px;
-    color: #aaa; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    font-size: 12px; opacity: .8;
-  }
-</style>
-</head>
-<body>
-<div id="hint">Sayfa açıldığında animasyon otomatik başlar</div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Helen Abla 🌹</title>
 
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-
-<script>
-// --- Scene setup
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x0b0b0b, 8, 30);
-
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-camera.position.set(0, 3, 10);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-document.body.appendChild(renderer.domElement);
-
-// Controls (disabled interaction, cinematic only)
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enablePan = false;
-controls.enableZoom = false;
-controls.enableRotate = false;
-
-// --- Lights (PBR-like)
-const hemi = new THREE.HemisphereLight(0xffffff, 0x222222, 0.6);
-scene.add(hemi);
-
-const key = new THREE.DirectionalLight(0xffffff, 1.1);
-key.position.set(5, 8, 5);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-scene.add(key);
-
-const rim = new THREE.DirectionalLight(0xffcccc, 0.4);
-rim.position.set(-6, 4, -4);
-scene.add(rim);
-
-// --- Ground
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.9, metalness: 0.0 })
-);
-ground.rotation.x = -Math.PI/2;
-ground.position.y = -0.01;
-ground.receiveShadow = true;
-scene.add(ground);
-
-// --- Materials
-const stemMat = new THREE.MeshStandardMaterial({
-  color: 0x2e7d32, roughness: 0.7, metalness: 0.05
-});
-const thornMat = new THREE.MeshStandardMaterial({
-  color: 0x1b5e20, roughness: 0.8, metalness: 0.0
-});
-const petalMat = new THREE.MeshStandardMaterial({
-  color: 0xb00020, roughness: 0.45, metalness: 0.1
-});
-
-// --- Groups
-const stemGroup = new THREE.Group();
-const thornGroup = new THREE.Group();
-const flowerGroup = new THREE.Group();
-scene.add(stemGroup, thornGroup, flowerGroup);
-
-// --- Stem (procedural grow)
-const stemSegments = 40;
-const stemRadius = 0.08;
-let stemMeshes = [];
-for (let i = 0; i < stemSegments; i++) {
-  const geo = new THREE.CylinderGeometry(stemRadius, stemRadius, 0.2, 12);
-  const mesh = new THREE.Mesh(geo, stemMat);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  mesh.position.y = -5; // start hidden
-  stemGroup.add(mesh);
-  stemMeshes.push(mesh);
-}
-
-// --- Thorns
-let thorns = [];
-for (let i = 0; i < 18; i++) {
-  const geo = new THREE.ConeGeometry(0.04, 0.12, 8);
-  const mesh = new THREE.Mesh(geo, thornMat);
-  mesh.castShadow = true;
-  mesh.visible = false;
-  thornGroup.add(mesh);
-  thorns.push(mesh);
-}
-
-// --- Flower (petals)
-const petalCount = 18;
-let petals = [];
-for (let i = 0; i < petalCount; i++) {
-  const geo = new THREE.PlaneGeometry(0.9, 1.2, 12, 12);
-  const mesh = new THREE.Mesh(geo, petalMat);
-  mesh.castShadow = true;
-  mesh.visible = false;
-  mesh.rotation.x = -Math.PI/2;
-  flowerGroup.add(mesh);
-  petals.push(mesh);
-}
-flowerGroup.position.y = 3.2;
-
-// --- Animation timeline
-let t = 0;
-function animate() {
-  requestAnimationFrame(animate);
-  t += 0.01;
-
-  // Stem growth
-  const stemProgress = Math.min(t, 1);
-  stemMeshes.forEach((m, i) => {
-    const p = (i+1)/stemSegments;
-    if (p <= stemProgress) {
-      m.position.y = -2 + i*0.12;
-      m.visible = true;
-    } else {
-      m.visible = false;
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #050505;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-  });
 
-  // Thorns appear after stem
-  if (t > 1.1) {
-    thorns.forEach((th, i) => {
-      th.visible = true;
-      const y = -1.8 + i*0.25;
-      th.position.set(Math.sin(i)*0.12, y, Math.cos(i)*0.12);
-      th.rotation.z = Math.sin(i)*0.6;
-    });
-  }
+    /* Mesaj katmanı */
+    #message {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      background: #050505;
+      z-index: 10;
+      padding: 24px;
+      opacity: 1;
+      transition: opacity 1.6s ease;
+    }
+    #message.hide { opacity: 0; pointer-events: none; }
 
-  // Flower bloom
-  if (t > 1.8) {
-    petals.forEach((p, i) => {
-      p.visible = true;
-      const angle = (i/petalCount) * Math.PI*2;
-      p.position.set(Math.cos(angle)*0.3, 0, Math.sin(angle)*0.3);
-      p.rotation.y = angle;
-      p.rotation.x = -Math.PI/2 + Math.min((t-1.8)*0.8, 1.2);
-    });
-  }
+    #message h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 64px);
+      line-height: 1.25;
+      letter-spacing: 1px;
+      text-shadow: 0 10px 30px rgba(0,0,0,.75);
+    }
 
-  // Camera cinematic move
-  camera.position.z = 10 - Math.min(t*2, 4);
-  camera.lookAt(0, 2, 0);
+    /* Three canvas */
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+      z-index: 1;
+    }
 
-  renderer.render(scene, camera);
-}
-animate();
+    /* Module desteklemeyen tarayıcılar */
+    .no-module {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+      z-index: 999;
+    }
+  </style>
+</head>
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
+<body>
+  <div id="message">
+    <h1>
+      HELEN ABLA<br>
+      DOĞUM GÜNÜN KUTLU OLSUN<br><br>
+      SENİ ÇOK SEVİYORUZ<br><br>
+      – BİRİCİK KARDEŞLERİN<br>
+      SEHA VE ELİF 🌹
+    </h1>
+  </div>
+
+  <script type="module" src="./main.js?v=1"></script>
+
+  <script nomodule>
+    document.body.innerHTML = '<div class="no-module">Tarayıcın çok eski olduğu için bu sayfa çalışmıyor.<br>Lütfen güncel Chrome/Edge kullan.</div>';
+  </script>
 </body>
 </html>
