@@ -1,14 +1,47 @@
 const st = document.getElementById('status');
 const log = (t) => (st.textContent = t + "\n\n" + st.textContent);
 
+async function tryImport(urls, label) {
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      log(`${label} deneniyor:\n${u}`);
+      return await import(u);
+    } catch (e) {
+      lastErr = e;
+      log(`${label} başarısız ❌\n${u}\nHata: ${e?.message || e}`);
+    }
+  }
+  throw lastErr || new Error(`${label} import edilemedi`);
+}
+
 (async () => {
   try {
     log("Three.js indiriliyor...");
 
-    // ✅ Static import yok -> hatayı yakalayabiliyoruz
-    const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
-    const { GLTFLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js");
-    const { DRACOLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/DRACOLoader.js");
+    // 1) THREE
+    const THREE = await tryImport([
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "https://esm.sh/three@0.160.0"
+    ], "THREE");
+
+    // 2) GLTFLoader
+    const gltfMod = await tryImport([
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+      "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+      "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+    ], "GLTFLoader");
+
+    // 3) DRACOLoader
+    const dracoMod = await tryImport([
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/DRACOLoader.js",
+      "https://unpkg.com/three@0.160.0/examples/jsm/loaders/DRACOLoader.js",
+      "https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js"
+    ], "DRACOLoader");
+
+    const { GLTFLoader } = gltfMod;
+    const { DRACOLoader } = dracoMod;
 
     log("Three.js hazır ✅ Sahne kuruluyor...");
 
@@ -46,7 +79,6 @@ const log = (t) => (st.textContent = t + "\n\n" + st.textContent);
         rose = gltf.scene;
         scene.add(rose);
 
-        // otomatik ortala/ölçekle
         const box = new THREE.Box3().setFromObject(rose);
         const size = new THREE.Vector3();
         const center = new THREE.Vector3();
@@ -57,6 +89,7 @@ const log = (t) => (st.textContent = t + "\n\n" + st.textContent);
 
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         fit = 2.2 / maxDim;
+
         rose.scale.setScalar(fit * 0.1);
         rose.position.y = -0.9;
 
