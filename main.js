@@ -26,16 +26,15 @@ async function tryImport(urls) {
       "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
       "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
     ]);
-
     const { GLTFLoader } = gltfMod;
 
     // ---------- SAHNE ----------
     const scene = new THREE.Scene();
 
-    // Koyu yeşil, doğa hissi veren arka plan
-    scene.background = new THREE.Color(0x0b2610); // koyu orman yeşili
-    // Hafif sis efekti (derinlik hissi)
-    scene.fog = new THREE.Fog(0x0b2610, 6, 20);
+    // Koyu orman yeşili arka plan + sis
+    const forestColor = 0x0b2610;
+    scene.background = new THREE.Color(forestColor);
+    scene.fog = new THREE.Fog(forestColor, 6, 20);
 
     const camera = new THREE.PerspectiveCamera(
       45,
@@ -54,7 +53,7 @@ async function tryImport(urls) {
     document.body.appendChild(renderer.domElement);
 
     // ---------- IŞIKLAR ----------
-    scene.add(new THREE.HemisphereLight(0xe8ffe8, 0x102010, 1.2)); // yeşilimsi gökyüzü ışığı
+    scene.add(new THREE.HemisphereLight(0xe8ffe8, 0x102010, 1.2)); // yeşilimsi ortam ışığı
 
     const key = new THREE.DirectionalLight(0xffffff, 2.1);
     key.position.set(6, 10, 6);
@@ -68,7 +67,7 @@ async function tryImport(urls) {
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(80, 80),
       new THREE.MeshStandardMaterial({
-        color: 0x25652a,   // çim yeşili
+        color: 0x25652a, // çim yeşili
         roughness: 0.95,
         metalness: 0.0
       })
@@ -77,9 +76,46 @@ async function tryImport(urls) {
     ground.position.y = -1.1;
     scene.add(ground);
 
+    // ---------- ÇİMENLER ----------
+    const grassGeometry = new THREE.PlaneGeometry(0.05, 0.35, 1, 1);
+    // dipten çıksın diye yukarı kaydır
+    grassGeometry.translate(0, 0.175, 0);
+
+    const grassMaterial = new THREE.MeshStandardMaterial({
+      color: 0x3fa34d,
+      side: THREE.DoubleSide
+    });
+
+    const grassCount = 1800;
+    const grass = new THREE.InstancedMesh(
+      grassGeometry,
+      grassMaterial,
+      grassCount
+    );
+    const dummy = new THREE.Object3D();
+
+    for (let i = 0; i < grassCount; i++) {
+      const radius = 0.6 + Math.random() * 2.2;  // gülün etrafında halka
+      const angle = Math.random() * Math.PI * 2;
+
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+
+      dummy.position.set(x, -1.1, z);
+      dummy.rotation.y = Math.random() * Math.PI;
+      const s = 0.8 + Math.random() * 0.8;
+      dummy.scale.set(s, 1 + Math.random() * 0.8, s);
+
+      dummy.updateMatrix();
+      grass.setMatrixAt(i, dummy.matrix);
+    }
+
+    scene.add(grass);
+
+    let windTime = 0;
+
     // ---------- GÜL MODELİ ----------
     const loader = new GLTFLoader();
-
     let rose = null;
     let fit = 1;
     let t = 0;
@@ -123,6 +159,7 @@ async function tryImport(urls) {
     function animate() {
       requestAnimationFrame(animate);
 
+      // Gül animasyonu
       if (rose) {
         t += 0.01;
         const p = Math.min(t, 1);
@@ -135,6 +172,17 @@ async function tryImport(urls) {
         // Hafif dönüş
         rose.rotation.y += 0.004;
       }
+
+      // Çimenlere hafif rüzgar
+      windTime += 0.01;
+      for (let i = 0; i < grass.count; i++) {
+        grass.getMatrixAt(i, dummy.matrix);
+        // z ekseninde hafif eğilme
+        dummy.rotation.z = Math.sin(windTime + i * 0.15) * 0.12;
+        dummy.updateMatrix();
+        grass.setMatrixAt(i, dummy.matrix);
+      }
+      grass.instanceMatrix.needsUpdate = true;
 
       renderer.render(scene, camera);
     }
