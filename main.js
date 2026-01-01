@@ -1,4 +1,4 @@
-// Three.js ve GLTFLoader'ı farklı CDN'lerden dene (hangi çalışırsa onu kullan)
+// CDN'den Three.js ve GLTFLoader'ı sırayla dene
 async function tryImport(urls) {
   let lastErr;
   for (const u of urls) {
@@ -13,14 +13,14 @@ async function tryImport(urls) {
 
 (async () => {
   try {
-    // 1) THREE modülünü indir
+    // 1) THREE modülü
     const THREE = await tryImport([
       "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
       "https://unpkg.com/three@0.160.0/build/three.module.js",
       "https://esm.sh/three@0.160.0"
     ]);
 
-    // 2) GLTFLoader'ı indir
+    // 2) GLTFLoader
     const gltfMod = await tryImport([
       "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
       "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
@@ -31,7 +31,11 @@ async function tryImport(urls) {
 
     // ---------- SAHNE ----------
     const scene = new THREE.Scene();
-    // Arka planı texture ile ayarlayacağız (aşağıda)
+
+    // Koyu yeşil, doğa hissi veren arka plan
+    scene.background = new THREE.Color(0x0b2610); // koyu orman yeşili
+    // Hafif sis efekti (derinlik hissi)
+    scene.fog = new THREE.Fog(0x0b2610, 6, 20);
 
     const camera = new THREE.PerspectiveCamera(
       45,
@@ -39,7 +43,7 @@ async function tryImport(urls) {
       0.05,
       500
     );
-    camera.position.set(0, 1.2, 4.2);
+    camera.position.set(0, 1.4, 4.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(innerWidth, innerHeight);
@@ -49,41 +53,22 @@ async function tryImport(urls) {
     }
     document.body.appendChild(renderer.domElement);
 
-    // ---------- ARKA PLAN (YEŞİLLİK FOTOĞRAFI) ----------
-    // bg.jpg dosyası repo kökünde olmalı
-    const texLoader = new THREE.TextureLoader();
-    texLoader.load(
-      "./bg.jpg",
-      (tex) => {
-        if (THREE.SRGBColorSpace) {
-          tex.colorSpace = THREE.SRGBColorSpace;
-        }
-        scene.background = tex;
-      },
-      undefined,
-      (err) => {
-        console.error("bg.jpg yüklenemedi:", err);
-        // Hata olursa koyu arka plan kullan
-        scene.background = new THREE.Color(0x050505);
-      }
-    );
-
     // ---------- IŞIKLAR ----------
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.2));
+    scene.add(new THREE.HemisphereLight(0xe8ffe8, 0x102010, 1.2)); // yeşilimsi gökyüzü ışığı
 
-    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    const key = new THREE.DirectionalLight(0xffffff, 2.1);
     key.position.set(6, 10, 6);
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0xffaaaa, 1.0);
+    const rim = new THREE.DirectionalLight(0xffc0aa, 0.9);
     rim.position.set(-8, 4, -8);
     scene.add(rim);
 
-    // ---------- ZEMİN (HAFİF YEŞİL) ----------
+    // ---------- ZEMİN (ÇİM TONU) ----------
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(60, 60),
+      new THREE.PlaneGeometry(80, 80),
       new THREE.MeshStandardMaterial({
-        color: 0x2d5c25,   // çimsi yeşil ton
+        color: 0x25652a,   // çim yeşili
         roughness: 0.95,
         metalness: 0.0
       })
@@ -105,7 +90,7 @@ async function tryImport(urls) {
         rose = gltf.scene;
         scene.add(rose);
 
-        // Modeli otomatik ortala ve ekrana sığdır
+        // Modeli ortala ve ekrana sığdır
         const box = new THREE.Box3().setFromObject(rose);
         const size = new THREE.Vector3();
         const center = new THREE.Vector3();
@@ -115,17 +100,17 @@ async function tryImport(urls) {
         // Ortala
         rose.position.sub(center);
 
-        // Boyuta göre ölçekle
+        // Boyuta göre ölçek
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         fit = 2.2 / maxDim;
 
-        // Başlangıçta küçük (yoktan var hissi)
+        // Başlangıçta küçük (yoktan var)
         rose.scale.setScalar(fit * 0.1);
 
-        // Tam ortada dursun
+        // Tam sahne ortasında dursun
         rose.position.set(0, 0, 0);
 
-        // Kamera merkeze baksın
+        // Kamera tam merkeze baksın
         camera.lookAt(0, 0, 0);
       },
       undefined,
@@ -134,16 +119,16 @@ async function tryImport(urls) {
       }
     );
 
-    // ---------- ANİMASYON DÖNGÜSÜ ----------
+    // ---------- ANİMASYON ----------
     function animate() {
       requestAnimationFrame(animate);
 
       if (rose) {
         t += 0.01;
         const p = Math.min(t, 1);
-        const ease = 1 - Math.pow(1 - p, 3); // yumuşak giriş
+        const ease = 1 - Math.pow(1 - p, 3); // yumuşak geçiş
 
-        // Yoktan var: büyüme
+        // Yoktan var büyüme
         const scaleFactor = 0.1 + ease * 0.95;
         rose.scale.setScalar(fit * scaleFactor);
 
